@@ -51,19 +51,25 @@ function wordView(position, response) {
   }
 
   const { id: wordId, definitions, id_int: wordIdInt } = response;
+
   const wordModal = document.createElement("div");
   wordModal.classList.add("modal-s");
+
   const closeEle = document.createElement("div");
   closeEle.classList.add("close-modal");
   closeEle.innerHTML = "X";
+
   wordModal.appendChild(closeEle);
+
   if (response.msg) {
     const errMsg = document.createElement("div");
     errMsg.classList.add("error");
+
     if (response.msg === "登录信息过期") {
       errMsg.innerHTML =
         '<a href="https://web.shanbay.com/web/account/login" target="_blank">去扇贝网登录</a>';
     }
+
     if (response.msg === "单词没找到") {
       wordModal.style.alignItems = "center";
       const image = new Image(200, 150);
@@ -71,6 +77,7 @@ function wordView(position, response) {
       wordModal.appendChild(image);
       errMsg.innerHTML = "没有在扇贝网中查到该词";
     }
+
     wordModal.appendChild(errMsg);
     document.body.appendChild(wordModal);
     setElementPosition(wordModal, position);
@@ -138,7 +145,7 @@ function wordView(position, response) {
     document
       .querySelector(".close-modal")
       .addEventListener("click", (event) => {
-        removeWordModal();
+        clear();
       });
 
     document.querySelector(".collect").addEventListener("click", (event) => {
@@ -156,6 +163,28 @@ function wordView(position, response) {
   }
 }
 
+function openMenu(position, word) {
+  const $menu = document.createElement("div");
+  $menu.id = "shanbay-menu";
+
+  const $button = document.createElement("button");
+
+  $button.innerText = "扇贝翻译";
+  $button.classList.add("transform-btn");
+  $button.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ word }, function (response) {
+      wordView(position, response);
+    });
+  });
+
+  $menu.appendChild($button);
+  document.body.appendChild($menu);
+  // setElementPosition($menu, position);
+  $menu.style.position = 'fixed'
+  $menu.style.top = `${position.y}px`
+  $menu.style.left = `${position.x}px`
+}
+
 // ===== 划动选中事件 =====
 
 function handleSelect() {
@@ -163,9 +192,8 @@ function handleSelect() {
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
   const word = selection.toString();
-  chrome.runtime.sendMessage({ word }, function (response) {
-    wordView({ x: rect.x, y: rect.y + 10 }, response);
-  });
+  
+  word && openMenu({ x: rect.left, y: rect.bottom }, word);
 }
 
 function debounce(fn, delay) {
@@ -183,13 +211,10 @@ function debounce(fn, delay) {
   };
 }
 
-chrome.storage.sync.get(
-  ["isSelectOn"],
-  ({ isSelectOn }) => {
-    isSelectOn &&
-      document.addEventListener("selectionchange", debounce(handleSelect, 500));
-  }
-);
+chrome.storage.sync.get(["isSelectOn"], ({ isSelectOn }) => {
+  isSelectOn &&
+    document.addEventListener("selectionchange", debounce(handleSelect, 500));
+});
 
 // ===== 右键菜单事件 =====
 
@@ -205,13 +230,13 @@ chrome.extension.onMessage.addListener(function (msg) {
 
 // ===== 点击事件 =====
 
-function removeWordModal() {
+function clear() {
   const modal = document.querySelector(".modal-s");
-  if (modal) {
-    modal.remove();
-  }
+  modal && modal.remove();
+  const menu = document.getElementById("shanbay-menu");
+  menu && menu.remove();
 }
 
 document.addEventListener("click", () => {
-  removeWordModal();
+  clear();
 });
