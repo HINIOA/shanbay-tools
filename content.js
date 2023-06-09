@@ -145,7 +145,7 @@ function wordView(position, response) {
     document
       .querySelector(".close-modal")
       .addEventListener("click", (event) => {
-        clear();
+        close();
       });
 
     document.querySelector(".collect").addEventListener("click", (event) => {
@@ -163,37 +163,42 @@ function wordView(position, response) {
   }
 }
 
-function openMenu(position, word) {
-  const $menu = document.createElement("div");
-  $menu.id = "shanbay-menu";
+// ===== 划动选中事件 =====
 
+function openButton(position, word) {
   const $button = document.createElement("button");
 
   $button.innerText = "扇贝翻译";
   $button.classList.add("transform-btn");
-  $button.addEventListener("click", () => {
+  $button.style.top = `${position.y}px`
+  $button.style.left = `${position.x}px`
+
+  $button.addEventListener("click", (e) => {
     chrome.runtime.sendMessage({ word }, function (response) {
       wordView(position, response);
     });
   });
 
-  $menu.appendChild($button);
-  document.body.appendChild($menu);
-  // setElementPosition($menu, position);
-  $menu.style.position = 'fixed'
-  $menu.style.top = `${position.y}px`
-  $menu.style.left = `${position.x}px`
-}
+  document.body.appendChild($button);
 
-// ===== 划动选中事件 =====
+  // 点击外侧关闭弹框
+  setTimeout(() => {
+    document.addEventListener('click', close);
+  }, 500);
+}
 
 function handleSelect() {
   const selection = window.getSelection();
+
+  if (selection.rangeCount < 1) {
+    return
+  }
+
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
   const word = selection.toString();
   
-  word && openMenu({ x: rect.left, y: rect.bottom }, word);
+  word && openButton({ x: rect.left, y: rect.bottom }, word);
 }
 
 function debounce(fn, delay) {
@@ -211,10 +216,7 @@ function debounce(fn, delay) {
   };
 }
 
-chrome.storage.sync.get(["isSelectOn"], ({ isSelectOn }) => {
-  isSelectOn &&
-    document.addEventListener("selectionchange", debounce(handleSelect, 500));
-});
+document.addEventListener("selectionchange", debounce(handleSelect, 200));
 
 // ===== 右键菜单事件 =====
 
@@ -228,15 +230,11 @@ chrome.extension.onMessage.addListener(function (msg) {
   wordView(ev, msg.res);
 });
 
-// ===== 点击事件 =====
-
-function clear() {
+// 移除弹框
+function close() {
   const modal = document.querySelector(".modal-s");
   modal && modal.remove();
-  const menu = document.getElementById("shanbay-menu");
-  menu && menu.remove();
+  const $button = document.querySelector(".transform-btn");
+  $button && $button.remove();
+  document.documentElement.removeEventListener('click', close)
 }
-
-document.addEventListener("click", () => {
-  clear();
-});

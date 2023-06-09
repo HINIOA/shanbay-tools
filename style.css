@@ -73,7 +73,7 @@
 
 .transform-btn {
   line-height: 1.5715;
-  position: relative;
+  position: fixed;
   display: inline-block;
   font-weight: 400;
   white-space: nowrap;
