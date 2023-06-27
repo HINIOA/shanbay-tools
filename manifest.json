@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "扇贝查词v2",
   "version": "0.0.1",
 
@@ -11,7 +11,7 @@
     "128": "images/shanbay.png"
   },
 
-  "browser_action": {
+  "action": {
     "default_popup": "popup.html",
     "default_title": "扇贝查词v2",
     "default_icon": {
@@ -23,8 +23,8 @@
   },
 
   "background": {
-    "scripts": ["background.js", "hot-reload.js"],
-    "persistent": false
+    "service_worker": "background.js",
+    "type": "module"
   },
 
   "permissions": ["activeTab", "contextMenus", "storage"],
@@ -36,17 +36,5 @@
       "css": ["style.css"],
       "js": ["content.js"]
     }
-  ],
-
-  "commands": {
-    "_execute_browser_action": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+B",
-        "mac": "MacCtrl+Shift+B"
-      },
-      "description": "Opens hello.html"
-    }
-  },
-
-  "web_accessible_resources": ["images/404.png"]
+  ]
 }
