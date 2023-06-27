@@ -166,6 +166,9 @@ function wordView(position, response) {
 // ===== 划动选中事件 =====
 
 function openButton(position, word) {
+  // 关闭已有弹窗
+  close()
+
   const $button = document.createElement("button");
 
   $button.innerText = "扇贝翻译";
@@ -197,7 +200,7 @@ function handleSelect() {
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
   const word = selection.toString();
-  
+
   word && openButton({ x: rect.left, y: rect.bottom }, word);
 }
 
@@ -218,17 +221,6 @@ function debounce(fn, delay) {
 
 document.addEventListener("selectionchange", debounce(handleSelect, 200));
 
-// ===== 右键菜单事件 =====
-
-let ev = null;
-
-document.body.addEventListener("contextmenu", function (e) {
-  ev = e;
-});
-
-chrome.extension.onMessage.addListener(function (msg) {
-  wordView(ev, msg.res);
-});
 
 // 移除弹框
 function close() {
